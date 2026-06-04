@@ -47,7 +47,8 @@ export const ProductManagement = () => {
             description: formData.get("description"),
             price: Number(formData.get("price")),
             imageUrl: newProductImage || formData.get("imageUrl") || '',
-            stock: Number(formData.get("stock"))
+            stock: Number(formData.get("stock")),
+            
         };
 
         try {

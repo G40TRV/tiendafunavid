@@ -104,6 +104,7 @@ export const ProducList = (props) => {
                                         index={index}
                                         isAdded={isAdded}
                                         onAddProduct={onAddProduct}
+                                        category={product.categoryId}
                                     />
                                 );
                             })
