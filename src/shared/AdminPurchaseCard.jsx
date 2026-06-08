@@ -10,12 +10,12 @@ import { RiCalendarLine, RiDeleteBin7Line, RiMoneyDollarCircleLine, RiEyeLine, R
  * @param {ReactNode} statusBadge - (Opcional) Badge de estado personalizado (ej: VERIFICADO).
  * @param {ReactNode} actionButton - (Opcional) BotÃ³n de acciÃ³n principal (ej: Verificar Pago).
  */
-export const AdminPurchaseCard = ({ 
-    purchase, 
-    onDelete, 
-    onImageClick, 
-    statusBadge, 
-    actionButton 
+export const AdminPurchaseCard = ({
+    purchase,
+    onDelete,
+    onImageClick,
+    statusBadge,
+    actionButton
 }) => {
     return (
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow group">
@@ -57,12 +57,19 @@ export const AdminPurchaseCard = ({
             {/* Cuerpo - Productos */}
             <div className="p-5 space-y-3 max-h-40 overflow-y-auto no-scrollbar">
                 <p className="text-xs font-bold text-slate-400 uppercase">Productos:</p>
-                {purchase.products.map((p, i) => (
-                    <div key={i} className="flex justify-between text-sm text-slate-600">
-                        <span className="truncate pr-4">{p.quantity}x {p.name || p.nameProduct}</span>
-                        <span className="font-mono text-slate-400">${(p.price * p.quantity).toLocaleString()}</span>
-                    </div>
-                ))}
+                {purchase.orderItems?.map((item, i) => {
+                    const product = item.product;
+                    return (
+                        <div key={i} className="flex justify-between text-sm text-slate-600">
+                            <span className="truncate pr-4">
+                                {item.quantity}x {product?.name || 'Producto sin nombre'}
+                            </span>
+                            <span className="font-mono text-slate-400">
+                                ${(Number(item.price) * item.quantity).toLocaleString()}
+                            </span>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Datos de Entrega */}
