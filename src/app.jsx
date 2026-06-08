@@ -88,9 +88,9 @@ export function App() {
       {isAuth && user?.role === "admin" && (
         <Route path="/admin/*" element={
           <div className="flex flex-col min-h-screen">
-            <AdminNavbar logout={() => { 
-              setIsAuth(false); 
-              setUser(null); 
+            <AdminNavbar logout={() => {
+              setIsAuth(false);
+              setUser(null);
               localStorage.removeItem('isAuth');
               localStorage.removeItem('user');
               auth.clear();
@@ -158,6 +158,12 @@ export function App() {
                   onBack={() => navigate("/checkout")}
                   onSuccess={async (paymentProof) => {
                     await recordPurchase(paymentProof);
+
+                    setAllProducts([]);
+                    setTotal(0);
+                    setCountProducts(0);
+                    setCustomerInfo(null);
+
                     navigate("/success");
                   }}
                 />
@@ -165,10 +171,6 @@ export function App() {
               <Route path="/success" element={
                 <SuccessPage
                   onContinue={() => {
-                    setAllProducts([]);
-                    setTotal(0);
-                    setCountProducts(0);
-                    setCustomerInfo(null);
                     navigate("/");
                   }}
                 />
