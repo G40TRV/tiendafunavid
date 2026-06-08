@@ -1,5 +1,5 @@
-import { useState } from 'preact/hooks'
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'preact/hooks'
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ProducList } from './features/shop/ProductList'
 import { Header } from './features/cart/Header'
 import { Footer } from './features/shop/Footer'
@@ -51,6 +51,18 @@ export function App() {
 
   const navigate = useNavigate();
 
+  const location = useLocation();
+  useEffect(() => {
+    if (user?.role === "admin" && !location.pathname.startsWith('/admin')) {
+      setIsAuth(false);
+      setUser(null);
+      localStorage.removeItem('isAuth');
+      localStorage.removeItem('user');
+      auth.clear();
+      navigate('/login');
+    }
+  }, [location.pathname]);
+
   // recordPurchase: Crea un pedido en el servidor con los productos del carrito
   const recordPurchase = async (paymentProof) => {
     const orderData = {
@@ -94,6 +106,7 @@ export function App() {
               localStorage.removeItem('isAuth');
               localStorage.removeItem('user');
               auth.clear();
+              navigate('/login');
             }} />
             <div className="flex-grow">
               <Routes>
