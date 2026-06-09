@@ -217,13 +217,6 @@ El frontend se encuentra en estado de prototipo funcional. La aplicación cuenta
 
 El frontend está diseñado para conectarse con una API backend encargada de gestionar productos, órdenes de compra, clientes y comprobantes de pago. Algunas vistas, como el listado de productos, el checkout y el panel administrativo, dependen de los datos enviados por el backend.
 
-
-## Capturas de pantalla
-
-Pendiente por agregar capturas de las vistas principales del proyecto.
-
-## Autor
-
 ## Equipo de desarrollo
 
 - Frontend: Alejandro Gaona Trujillo
