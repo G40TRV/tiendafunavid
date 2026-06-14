@@ -13,7 +13,7 @@ export const VerifiedHistory = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('date-desc');
-    const [searchMode, setSearchMode] = useState('product');
+    const [searchMode, setSearchMode] = useState('id');
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -48,38 +48,55 @@ export const VerifiedHistory = () => {
     };
 
     const filteredOrders = orders
-        .filter(item => {
-            if (!searchTerm) return true;
+        .filter(order => {
+            const normalizedTerm = searchTerm.trim().toLowerCase();
 
-            if (searchMode === 'product') {
-                return (item.items || []).some(i =>
-                    i.name?.toLowerCase().includes(searchTerm.toLowerCase())
-                );
-            } else if (searchMode === 'customer') {
-                return item.customerName?.toLowerCase().includes(searchTerm.toLowerCase());
-            } else if (searchMode === 'date') {
-                return item.createdAt?.split('T')[0] === searchTerm;
+            if (!normalizedTerm) return true;
+
+            if (searchMode === 'id') {
+                return String(order.id)
+                    .toLowerCase()
+                    .includes(normalizedTerm);
             }
+
+            if (searchMode === 'category') {
+                const orderItems = order.items || order.orderItems || [];
+
+                return orderItems.some(item => {
+                    const categoryName =
+                        item.category?.name ||
+                        item.categoryName ||
+                        item.product?.category?.name ||
+                        item.product?.categoryName ||
+                        '';
+
+                    return categoryName
+                        .toLowerCase()
+                        .includes(normalizedTerm);
+                });
+            }
+
             return true;
         })
         .sort((a, b) => {
-            if (sortBy === 'date-desc') return new Date(b.createdAt) - new Date(a.createdAt);
-            if (sortBy === 'date-asc') return new Date(a.createdAt) - new Date(b.createdAt);
-            if (sortBy === 'name-asc') {
-                const nameA = a.customerName?.toLowerCase() || '';
-                const nameB = b.customerName?.toLowerCase() || '';
-                return nameA.localeCompare(nameB);
+            if (sortBy === 'date-desc') {
+                return new Date(b.createdAt) - new Date(a.createdAt);
             }
+
+            if (sortBy === 'date-asc') {
+                return new Date(a.createdAt) - new Date(b.createdAt);
+            }
+
+            if (sortBy === 'id-asc') {
+                return Number(a.id) - Number(b.id);
+            }
+
+            if (sortBy === 'id-desc') {
+                return Number(b.id) - Number(a.id);
+            }
+
             return 0;
         });
-
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center pt-20">
-                <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-slate-50 pt-32 pb-20 px-4 sm:px-6 lg:px-8">
@@ -115,14 +132,29 @@ export const VerifiedHistory = () => {
                                 key={order.id}
                                 purchase={{
                                     ...order,
-                                    products: order.items || [],
+                                    products:
+                                        order.items ||
+                                        order.orderItems ||
+                                        [],
                                     customer: {
-                                        name: order.customerName,
-                                        email: order.customerEmail,
-                                        phone: order.customerPhone,
-                                        address: order.shippingAddress,
-                                        city: order.shippingCity,
-                                        postalCode: order.shippingPostalCode
+                                        name:
+                                            order.customer?.name ||
+                                            order.customerName,
+                                        email:
+                                            order.customer?.email ||
+                                            order.customerEmail,
+                                        phone:
+                                            order.customer?.phone ||
+                                            order.customerPhone,
+                                        address:
+                                            order.customer?.address ||
+                                            order.shippingAddress,
+                                        city:
+                                            order.customer?.city ||
+                                            order.shippingCity,
+                                        postalCode:
+                                            order.customer?.postalCode ||
+                                            order.shippingPostalCode
                                     }
                                 }}
                                 onDelete={() => handleDelete(order.id)}
