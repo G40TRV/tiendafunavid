@@ -1,8 +1,16 @@
-import { RiEditLine, RiDeleteBin6Line, RiSave3Line, RiCloseLine, RiPriceTag3Line, RiStackLine, RiAddLine, RiImageAddLine, RiFileTextLine, RiImageLine } from '@remixicon/react';
+import { RiEditLine, RiDeleteBin6Line, RiSave3Line, RiCloseLine, RiPriceTag3Line, RiStackLine, RiAddLine, RiImageAddLine, RiFileTextLine, RiImageLine, RiFolder3Line } from '@remixicon/react';
 import { useProductManagement } from './useProductManagement';
-import { useState } from 'react';
-import { API_ENDPOINTS } from '../../../shared/api';
-import { auth } from '../../../shared/auth';
+import { useState } from 'react'
+import { AddProduct } from '../add/AddProduct';
+import { AddCategory } from '../add/AddCategory';
+
+const temporaryCategories = [
+    { id: 1, name: 'Equipos médicos' },
+    { id: 2, name: 'Muebles' },
+    { id: 3, name: 'Juguetes' },
+    { id: 4, name: 'Ropa' }
+];
+
 
 export const ProductManagement = () => {
     const {
@@ -19,66 +27,9 @@ export const ProductManagement = () => {
         handleSaveEdit,
         cancelEdit
     } = useProductManagement();
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false); const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [newProductImage, setNewProductImage] = useState(null);
-
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setNewProductImage(reader.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleAddSubmit = async (e) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-
-        const form = e.target;
-        const formData = new FormData(form);
-        const newProduct = {
-            name: formData.get("name"),
-            description: formData.get("description"),
-            price: Number(formData.get("price")),
-            imageUrl: newProductImage || formData.get("imageUrl") || '',
-            stock: Number(formData.get("stock")),
-            
-        };
-
-        try {
-            const response = await fetch(API_ENDPOINTS.PRODUCTS.LIST, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    ...auth.getAuthHeader()
-                },
-                body: JSON.stringify(newProduct),
-            });
-
-            if (response.ok) {
-                await fetchProducts();
-                setIsModalOpen(false);
-                setNewProductImage(null);
-                form.reset();
-            }
-        } catch (error) {
-            console.error("Error guardando producto:", error);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleSaveClick = async () => {
-        setIsSaving(true);
-        await handleSaveEdit();
-        setIsSaving(false);
-    };
 
     return (
         <main className='min-h-screen pt-28 bg-slate-50 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/50 via-slate-50 to-slate-50 p-6 sm:p-10 font-sans text-slate-900'>
@@ -94,12 +45,21 @@ export const ProductManagement = () => {
                     </div>
 
                     <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={() => setIsProductModalOpen(true)}
                         className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5 active:scale-95"
                     >
                         <RiAddLine className="w-6 h-6" />
                         Nuevo Producto
                     </button>
+
+                    <button
+                        onClick={() => setIsCategoryModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/20 transition-all hover:-translate-y-0.5 active:scale-95"
+                    >
+                        <RiFolder3Line className="w-6 h-6" />
+                        Nueva Categoría
+                    </button>
+
                 </div>
 
                 {editingId && (
@@ -316,100 +276,49 @@ export const ProductManagement = () => {
                 </div>
             </div>
 
-            {isModalOpen && (
+            {isProductModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
+                    <div
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        onClick={() => setIsProductModalOpen(false)}
+                    />
+
                     <div className="relative max-w-2xl w-full bg-white rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300">
                         <div className="flex justify-between items-center p-6 border-b border-slate-100">
                             <h3 className="text-2xl font-black text-slate-900 flex items-center gap-2">
                                 <RiAddLine className="text-blue-600" />
                                 Agregar Nuevo Producto
                             </h3>
+
                             <button
-                                onClick={() => setIsModalOpen(false)}
+                                type="button"
+                                onClick={() => setIsProductModalOpen(false)}
                                 className="text-slate-400 hover:text-slate-900 p-2"
                             >
                                 <RiCloseLine className="w-8 h-8" />
                             </button>
                         </div>
-                        <form onSubmit={handleAddSubmit} className="p-8 space-y-6 max-h-[75vh] overflow-y-auto no-scrollbar">
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Nombre del Producto</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <RiFileTextLine className="h-5 w-5 text-slate-400" />
-                                    </div>
-                                    <input type="text" name="name" required className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/50" placeholder="Ej: Tensiómetro de brazo" />
-                                </div>
-                            </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Descripción</label>
-                                <textarea name="description" rows="3" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none" placeholder="Breve descripción del producto..."></textarea>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Precio</label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                            <RiPriceTag3Line className="h-5 w-5 text-slate-400" />
-                                        </div>
-                                        <input type="number" name="price" required min="0" className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/50" placeholder="0.00" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Cantidad Inicial</label>
-                                    <input type="number" name="stock" required min="1" defaultValue="1" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Imagen del Producto</label>
-                                <div className="flex flex-col gap-4">
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                            <RiImageAddLine className="h-5 w-5 text-slate-400" />
-                                        </div>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleFileChange}
-                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/50 file:hidden cursor-pointer"
-                                        />
-                                        <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-xs font-bold text-blue-600">
-                                            SELECCIONAR ARCHIVO
-                                        </div>
-                                    </div>
-
-                                    {newProductImage && (
-                                        <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
-                                            <img src={newProductImage} alt="Vista previa" className="w-full h-full object-cover" />
-                                            <button
-                                                type="button"
-                                                onClick={() => setNewProductImage(null)}
-                                                className="absolute top-2 right-2 p-1.5 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600 transition-colors"
-                                            >
-                                                <RiCloseLine className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="pt-4">
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className={`w-full py-4 rounded-2xl font-bold text-white shadow-lg transition-all flex items-center justify-center gap-2 text-lg ${isSubmitting ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25 active:scale-95'}`}
-                                >
-                                    {isSubmitting ? 'Guardando...' : 'Agregar Producto'}
-                                </button>
-                            </div>
-                        </form>
+                        <AddProduct
+                            categories={temporaryCategories}
+                            onCancel={() => {
+                                setIsProductModalOpen(false);
+                            }}
+                            onSuccess={async () => {
+                                await fetchProducts();
+                                setIsProductModalOpen(false);
+                            }}
+                        />
                     </div>
                 </div>
             )}
+            <AddCategory
+                isOpen={isCategoryModalOpen}
+                onClose={() => setIsCategoryModalOpen(false)}
+                onCategoryAdded={(newCategory) => {
+                    console.log('Categoría creada:', newCategory);
+                }}
+            />
         </main>
     );
 };
