@@ -5,6 +5,7 @@ export const API_ENDPOINTS = {
     LOGIN: `${API_BASE_URL}/auth/login`,
   },
   PRODUCTS: {
+    LISTWIMG: `${API_BASE_URL}/products/with-image`,
     LIST: `${API_BASE_URL}/products`,
     BY_ID: (id) => `${API_BASE_URL}/products/${id}`,
   },

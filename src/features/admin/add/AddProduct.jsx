@@ -34,7 +34,7 @@ export const AddProduct = () => {
         };
 
         try {
-            const response = await fetch(API_ENDPOINTS.PRODUCTS.LIST, {
+            const response = await fetch(API_ENDPOINTS.PRODUCTS.LISTWIMG, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

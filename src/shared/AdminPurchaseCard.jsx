@@ -4,7 +4,7 @@ import { RiCalendarLine, RiDeleteBin7Line, RiMoneyDollarCircleLine, RiEyeLine, R
  * AdminPurchaseCard Component
  * Tarjeta unificada para mostrar los detalles de una compra en el panel de administrador.
  * 
- * @param {object} purchase - El objeto con la informaciÃ³n de la compra.
+ * @param {object} purchase - El objeto con la información de la compra.
  * @param {function} onDelete - FunciÃ³n para eliminar el registro.
  * @param {function} onImageClick - FunciÃ³n para abrir la imagen en pantalla completa.
  * @param {ReactNode} statusBadge - (Opcional) Badge de estado personalizado (ej: VERIFICADO).
@@ -74,16 +74,20 @@ export const AdminPurchaseCard = ({
 
             {/* Datos de Entrega */}
             {purchase.customer && (
+                
                 <div className="p-5 pt-0 border-t border-slate-100">
                     <p className="text-xs font-bold text-slate-400 uppercase mt-4 mb-2">Datos de Entrega:</p>
                     <div className="space-y-1 text-sm">
                         <p className="text-slate-600"><span className="text-slate-400">Nombre:</span> {purchase.customer.name}</p>
                         <p className="text-slate-600"><span className="text-slate-400">Correo:</span> {purchase.customer.email}</p>
-                        <p className="text-slate-600"><span className="text-slate-400">DirecciÃ³n:</span> {purchase.customer.address}</p>
-                        <p className="text-slate-600"><span className="text-slate-400">TelÃ©fono:</span> {purchase.customer.phone}</p>
+                        <p className="text-slate-600"><span className="text-slate-400">Dirección:</span> {purchase.customer.address}</p>
+                        <p className="text-slate-600"><span className="text-slate-400">Teléfono:</span> {purchase.customer.phone}</p>
+                        <p className="text-slate-600"><span className="text-slate-400">Ciudad:</span> {purchase.customer.city}</p>
+                        <p className="text-slate-600"><span className="text-slate-400">Código postal:</span> {purchase.customer.postalCode}</p>
                     </div>
                 </div>
-            )}
+            )//&&console.log(purchase)
+            }
 
             {/* Footer - Comprobante y Acciones */}
             <div className="p-5 bg-slate-50/50 border-t border-slate-100 space-y-4">

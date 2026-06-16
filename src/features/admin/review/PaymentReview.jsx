@@ -97,12 +97,12 @@ export const PaymentReview = () => {
                                     ...order,
                                     products: order.items || [],
                                     customer: {
-                                        name: order.customerName,
-                                        email: order.customerEmail,
-                                        phone: order.customerPhone,
-                                        address: order.shippingAddress,
-                                        city: order.shippingCity,
-                                        postalCode: order.shippingPostalCode
+                                        name: order.customer.name,
+                                        email: order.customer.email,
+                                        phone: order.customer.phone,
+                                        address: order.customer.address,
+                                        city: order.customer.city,
+                                        postalCode: order.customer.postalCode || ["No"],
                                     }
                                 }}
                                 onDelete={() => handleDelete(order.id)}

@@ -26,6 +26,12 @@ export const Checkout = ({ allProducts, total, onProceedToPayment, onBack }) => 
         onProceedToPayment(customerData);
     };
 
+    const handleSubmit = (e) =>{
+        e.preventDefault();
+        console.log(customerData);
+        
+    }
+
     return (
         <div className="min-h-screen bg-slate-50 pt-28 pb-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
@@ -67,7 +73,7 @@ export const Checkout = ({ allProducts, total, onProceedToPayment, onBack }) => 
                         <p className="text-4xl font-black text-cyan-600 tracking-tight">${total.toLocaleString()}</p>
                     </div>
 
-                    <form onSubmit={(e) => { e.preventDefault(); handleProceed(); }} className="space-y-8">
+                    <form onSubmit={(e) => { handleSubmit(e); }} className="space-y-8">
                         <div className="bg-cyan-50 border border-cyan-100 rounded-2xl p-6">
                             <h3 className="font-bold text-cyan-900 mb-4">Datos de envío</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,6 +141,7 @@ export const Checkout = ({ allProducts, total, onProceedToPayment, onBack }) => 
                         <button
                             type="submit"
                             className="w-full py-4 rounded-xl font-bold bg-gradient-to-r from-cyan-600 to-sky-600 text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/40 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2 text-lg"
+                            
                         >
                             <RiSecurePaymentLine className="w-6 h-6" />
                             Ir al pago seguro
