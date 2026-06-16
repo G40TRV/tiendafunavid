@@ -63,7 +63,7 @@ export const AddCategory = ({ isOpen, onClose, onCategoryAdded }) => {
         };
 
         try {
-            const response = await fetch(API_ENDPOINTS.CATEGORIES.LIST, {
+            const response = await fetch(API_ENDPOINTS.CATEGORY.LIST, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

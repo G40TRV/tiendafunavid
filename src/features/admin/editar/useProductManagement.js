@@ -8,6 +8,7 @@ export const useProductManagement = () => {
     const [editingId, setEditingId] = useState(null);
     const [editFormData, setEditFormData] = useState({});
     const [notification, setNotification] = useState({ message: "", type: "" });
+    const [category, setCategory] = useState([])
 
     useEffect(() => {
         fetchProducts();
