@@ -73,7 +73,7 @@ export const Checkout = ({ allProducts, total, onProceedToPayment, onBack }) => 
                         <p className="text-4xl font-black text-cyan-600 tracking-tight">${total.toLocaleString()}</p>
                     </div>
 
-                    <form onSubmit={(e) => { handleSubmit(e); }} className="space-y-8">
+                    <form onSubmit={(e) => { handleSubmit(e); handleProceed() }} className="space-y-8">
                         <div className="bg-cyan-50 border border-cyan-100 rounded-2xl p-6">
                             <h3 className="font-bold text-cyan-900 mb-4">Datos de envío</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
