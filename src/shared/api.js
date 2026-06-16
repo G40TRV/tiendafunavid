@@ -18,6 +18,9 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `${API_BASE_URL}/orders/${id}`,
     STATUS: (id) => `${API_BASE_URL}/orders/${id}/status`,
   },
+  CATEGORY:{
+    LIST: `${API_BASE_URL}/categories`,
+  }
 };
 
 export default API_BASE_URL;
