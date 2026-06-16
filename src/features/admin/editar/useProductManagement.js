@@ -12,19 +12,19 @@ export const useProductManagement = () => {
 
     useEffect(() => {
         fetchProducts();
+        fetchCategories();
     }, []);
 
-    const fetchProducts = async () => {
+    const fetchCategories = async () => {
         try {
-            const response = await fetch(API_ENDPOINTS.PRODUCTS.LIST);
+            const response = await fetch(API_ENDPOINTS.CATEGORIES.LIST);
             const data = await response.json();
-            setProducts(data);
+            setCategory(data);
         } catch (error) {
-            showNotification("Error al cargar productos", "error");
-        } finally {
-            setIsLoading(false);
+            showNotification("Error al cargar categorías", "error");
         }
     };
+
 
     const showNotification = (message, type) => {
         setNotification({ message, type });
