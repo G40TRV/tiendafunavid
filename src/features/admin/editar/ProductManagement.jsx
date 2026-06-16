@@ -3,14 +3,7 @@ import { useProductManagement } from './useProductManagement';
 import { useState } from 'react'
 import { AddProduct } from '../add/AddProduct';
 import { AddCategory } from '../add/AddCategory';
-
-const temporaryCategories = [
-    { id: 1, name: 'Equipos médicos' },
-    { id: 2, name: 'Muebles' },
-    { id: 3, name: 'Juguetes' },
-    { id: 4, name: 'Ropa' }
-];
-
+import { useCategory } from './useCategory';
 
 export const ProductManagement = () => {
     const {
@@ -27,6 +20,16 @@ export const ProductManagement = () => {
         handleSaveEdit,
         cancelEdit
     } = useProductManagement();
+    const {
+        categories,
+        isLoadingCategories,
+        isCreatingCategory,
+        deletingCategoryId,
+        categoryNotification,
+        fetchCategories,
+        createCategory,
+        deleteCategory
+    } = useCategory();
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false); const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -300,7 +303,7 @@ export const ProductManagement = () => {
                         </div>
 
                         <AddProduct
-                            categories={temporaryCategories}
+                            categories={categories}
                             onCancel={() => {
                                 setIsProductModalOpen(false);
                             }}
@@ -315,9 +318,14 @@ export const ProductManagement = () => {
             <AddCategory
                 isOpen={isCategoryModalOpen}
                 onClose={() => setIsCategoryModalOpen(false)}
-                onCategoryAdded={(newCategory) => {
-                    console.log('Categoría creada:', newCategory);
-                }}
+                categories={categories}
+                isLoadingCategories={isLoadingCategories}
+                isCreatingCategory={isCreatingCategory}
+                deletingCategoryId={deletingCategoryId}
+                notification={categoryNotification}
+                onCreateCategory={createCategory}
+                onDeleteCategory={deleteCategory}
+                onRefreshCategories={fetchCategories}
             />
         </main>
     );

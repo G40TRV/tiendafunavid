@@ -8,22 +8,10 @@ export const useProductManagement = () => {
     const [editingId, setEditingId] = useState(null);
     const [editFormData, setEditFormData] = useState({});
     const [notification, setNotification] = useState({ message: "", type: "" });
-    const [category, setCategory] = useState([])
 
     useEffect(() => {
         fetchProducts();
-        fetchCategories();
     }, []);
-
-    const fetchCategories = async () => {
-        try {
-            const response = await fetch(API_ENDPOINTS.CATEGORIES.LIST);
-            const data = await response.json();
-            setCategory(data);
-        } catch (error) {
-            showNotification("Error al cargar categorías", "error");
-        }
-    };
 
 
     const showNotification = (message, type) => {
@@ -57,26 +45,6 @@ export const useProductManagement = () => {
                 showNotification("Producto eliminado correctamente", "success");
             } else {
                 showNotification("Error al eliminar el producto", "error");
-            }
-        } catch (error) {
-            showNotification("Error de conexión", "error");
-        }
-    };
-
-    const handleDeleteCategory = async (id) => {
-        if (!window.confirm("¿Estás seguro de que deseas eliminar esta categoria?")) return;
-
-        try {
-            const response = await fetch(API_ENDPOINTS.CATEGORY.BY_ID(id), {
-                method: "DELETE",
-                headers: auth.getAuthHeader()
-            });
-
-            if (response.ok) {
-                setCategory(category.filter(c => c.id !== id));
-                showNotification("Categoria eliminada correctamente", "success");
-            } else {
-                showNotification("Error al eliminar la categoria", "error");
             }
         } catch (error) {
             showNotification("Error de conexión", "error");

@@ -18,9 +18,9 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `${API_BASE_URL}/orders/${id}`,
     STATUS: (id) => `${API_BASE_URL}/orders/${id}/status`,
   },
-  CATEGORY:{
+  CATEGORY: {
     LIST: `${API_BASE_URL}/categories`,
-    BY_ID: (id)=> `${API_BASE_URL}/products/${id}`,
+    BY_ID: (id) => `${API_BASE_URL}/categories/${id}`,
   }
 };
 
