@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
   },
   CATEGORY:{
     LIST: `${API_BASE_URL}/categories`,
+    BY_ID: (id)=> `${API_BASE_URL}/products/${id}`,
   }
 };
 
