@@ -34,7 +34,7 @@ export const AddCategory = ({
 
         try {
             const response = await fetch(
-                API_ENDPOINTS.CATEGORIES.LIST,
+                API_ENDPOINTS.CATEGORY.LIST,
                 {
                     headers: {
                         ...auth.getAuthHeader()
@@ -132,7 +132,7 @@ export const AddCategory = ({
 
         try {
             const response = await fetch(
-                API_ENDPOINTS.CATEGORIES.LIST,
+                API_ENDPOINTS.CATEGORY.LIST,
                 {
                     method: 'POST',
                     headers: {
@@ -203,7 +203,7 @@ export const AddCategory = ({
 
         try {
             const response = await fetch(
-                API_ENDPOINTS.CATEGORIES.BY_ID(category.id),
+                API_ENDPOINTS.CATEGORY.BY_ID(category.id),
                 {
                     method: 'DELETE',
                     headers: {
@@ -367,9 +367,9 @@ export const AddCategory = ({
                                 !categoryName.trim()
                             }
                             className={`w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center gap-2 ${isSubmitting ||
-                                    !categoryName.trim()
-                                    ? 'bg-slate-400 cursor-not-allowed shadow-none'
-                                    : 'bg-gradient-to-r from-blue-600 to-blue-500 shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5'
+                                !categoryName.trim()
+                                ? 'bg-slate-400 cursor-not-allowed shadow-none'
+                                : 'bg-gradient-to-r from-blue-600 to-blue-500 shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5'
                                 }`}
                         >
                             {isSubmitting ? (
