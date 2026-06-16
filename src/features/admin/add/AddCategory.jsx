@@ -34,7 +34,7 @@ export const AddCategory = ({
 
         try {
             const response = await fetch(
-                API_ENDPOINTS.CATEGORY.LIST,
+                API_ENDPOINTS.CATEGORIES.LIST,
                 {
                     headers: {
                         ...auth.getAuthHeader()
@@ -132,7 +132,7 @@ export const AddCategory = ({
 
         try {
             const response = await fetch(
-                API_ENDPOINTS.CATEGORY.LIST,
+                API_ENDPOINTS.CATEGORIES.LIST,
                 {
                     method: 'POST',
                     headers: {
@@ -203,7 +203,7 @@ export const AddCategory = ({
 
         try {
             const response = await fetch(
-                API_ENDPOINTS.CATEGORY.BY_ID(category.id),
+                API_ENDPOINTS.CATEGORIES.BY_ID(category.id),
                 {
                     method: 'DELETE',
                     headers: {
