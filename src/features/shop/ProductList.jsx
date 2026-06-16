@@ -18,26 +18,73 @@ const mockTestimonials = [
 export const ProducList = (props) => {
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('all');
 
     // Usamos el custom hook para extraer la lÃ³gica de agregar al carrito
     const { addedIds, onAddProduct } = useProductList(props);
 
     // Cargar productos de la base de datos simulada al iniciar
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchStoreData = async () => {
             try {
-                const response = await fetch(API_ENDPOINTS.PRODUCTS.LIST);
-                const data = await response.json();
-                setProducts(data);
+                const [productsResponse, categoriesResponse] =
+                    await Promise.all([
+                        fetch(API_ENDPOINTS.PRODUCTS.LIST),
+                        fetch(API_ENDPOINTS.CATEGORY.LIST)
+                    ]);
+
+                const productsData = await productsResponse
+                    .json()
+                    .catch(() => []);
+
+                const categoriesData = await categoriesResponse
+                    .json()
+                    .catch(() => []);
+
+                if (!productsResponse.ok) {
+                    throw new Error('No se pudieron cargar los productos.');
+                }
+
+                if (!categoriesResponse.ok) {
+                    throw new Error('No se pudieron cargar las categorías.');
+                }
+
+                const productList = Array.isArray(productsData)
+                    ? productsData
+                    : productsData?.products || [];
+
+                const categoryList = Array.isArray(categoriesData)
+                    ? categoriesData
+                    : categoriesData?.categories || [];
+
+                setProducts(productList);
+                setCategories(categoryList);
             } catch (error) {
-                console.error("Error cargando productos:", error);
+                console.error(
+                    'Error cargando los datos de la tienda:',
+                    error
+                );
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchProducts();
+        fetchStoreData();
     }, []);
+
+    const filteredProducts = products.filter((product) => {
+        if (selectedCategory === 'all') {
+            return true;
+        }
+
+        const productCategoryId =
+            product.categoryId ??
+            product.category?.id;
+
+        return String(productCategoryId) ===
+            String(selectedCategory);
+    });
 
     return (
         <div className="min-h-screen bg-slate-50 pt-28 pb-20 px-4 sm:px-6 lg:px-8">
@@ -83,38 +130,103 @@ export const ProducList = (props) => {
                 )}
 
                 {/* Catálogo Completo */}
+                {/* Catálogo por categorías */}
                 <div className="mb-16">
-                    <div className="border-b border-slate-200 mb-8">
-                        <h3 className="text-2xl font-black text-slate-800 inline-block border-b-4 border-cyan-600 pb-2 px-1 -mb-[2px]">
-                            Catálogo Completo
-                        </h3>
-                    </div>
+
+                    {/* Filtros */}
+                    {!isLoading && (
+                        <div className="mb-8">
+                            <div className="flex flex-wrap gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setSelectedCategory('all')
+                                    }
+                                    className={`px-5 py-2.5 rounded-full text-sm font-bold border transition-all ${selectedCategory === 'all'
+                                        ? 'bg-cyan-600 text-white border-cyan-600 shadow-lg shadow-cyan-500/20'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-cyan-400 hover:text-cyan-600'
+                                        }`}
+                                >
+                                    Todos los productos
+                                </button>
+
+                                {categories.map(category => {
+                                    const isSelected =
+                                        String(selectedCategory) ===
+                                        String(category.id);
+
+                                    return (
+                                        <button
+                                            key={category.id}
+                                            type="button"
+                                            onClick={() =>
+                                                setSelectedCategory(
+                                                    category.id
+                                                )
+                                            }
+                                            className={`px-5 py-2.5 rounded-full text-sm font-bold border transition-all ${isSelected
+                                                ? 'bg-cyan-600 text-white border-cyan-600 shadow-lg shadow-cyan-500/20'
+                                                : 'bg-white text-slate-600 border-slate-200 hover:border-cyan-400 hover:text-cyan-600'
+                                                }`}
+                                        >
+                                            {category.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Productos */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                         {isLoading ? (
                             <div className="col-span-full flex justify-center py-20">
-                                <div className="w-12 h-12 border-4 border-cyan-600 border-t-transparent rounded-full animate-spin"></div>
+                                <div className="w-12 h-12 border-4 border-cyan-600 border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        ) : filteredProducts.length === 0 ? (
+                            <div className="col-span-full bg-white border-2 border-dashed border-slate-200 rounded-3xl py-16 px-6 text-center">
+                                <p className="text-xl font-bold text-slate-500">
+                                    No hay productos en esta categoría
+                                </p>
+
+                                <p className="text-sm text-slate-400 mt-2">
+                                    Selecciona otra categoría para continuar explorando.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setSelectedCategory('all')
+                                    }
+                                    className="mt-6 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl transition-colors"
+                                >
+                                    Ver todo el catálogo
+                                </button>
                             </div>
                         ) : (
-                            products.map((product, index) => {
-                                const isAdded = addedIds.includes(product.id);
-                                return (
-                                    <ProductCard
-                                        key={product.id}
-                                        product={product}
-                                        index={index}
-                                        isAdded={isAdded}
-                                        onAddProduct={onAddProduct}
-                                        category={product.categoryId}
-                                    />
-                                );
-                            })
+                            filteredProducts.map(
+                                (product, index) => {
+                                    const isAdded =
+                                        addedIds.includes(product.id);
+
+                                    return (
+                                        <ProductCard
+                                            key={product.id}
+                                            product={product}
+                                            index={index}
+                                            isAdded={isAdded}
+                                            onAddProduct={
+                                                onAddProduct
+                                            }
+                                        />
+                                    );
+                                }
+                            )
                         )}
                     </div>
                 </div>
                 {/* Nuestros Aliados */}
                 <AlliesSection />
-
-
                 {/* Testimonios */}
                 <div className="mb-16 mt-24 animate-in fade-in duration-700 delay-500">
                     <div className="border-b border-slate-200 mb-10 text-center sm:text-left">
