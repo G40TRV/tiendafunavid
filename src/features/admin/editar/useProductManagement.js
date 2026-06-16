@@ -31,6 +31,18 @@ export const useProductManagement = () => {
         setTimeout(() => setNotification({ message: "", type: "" }), 3000);
     };
 
+    const fetchProducts = async () => {
+        try {
+            const response = await fetch(API_ENDPOINTS.PRODUCTS.LIST);
+            const data = await response.json();
+            setProducts(data);
+        } catch (error) {
+            showNotification("Error al cargar productos", "error");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleDelete = async (id) => {
         if (!window.confirm("¿Estás seguro de que deseas eliminar este producto?")) return;
 
