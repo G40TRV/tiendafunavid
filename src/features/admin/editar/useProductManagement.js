@@ -8,6 +8,9 @@ export const useProductManagement = () => {
     const [editingId, setEditingId] = useState(null);
     const [editFormData, setEditFormData] = useState({});
     const [notification, setNotification] = useState({ message: "", type: "" });
+    const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState("");
+    const [newCategoryColor, setNewCategoryColor] = useState("#000000");
 
     useEffect(() => {
         fetchProducts();
