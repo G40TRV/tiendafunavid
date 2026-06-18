@@ -31,8 +31,17 @@ export const ProductManagement = () => {
         deleteCategory
     } = useCategory();
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false); const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
+    const handleSaveClick = async () => {
+        setIsSaving(true);
+        try {
+            await handleSaveEdit();
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     return (
         <main className='min-h-screen pt-28 bg-slate-50 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/50 via-slate-50 to-slate-50 p-6 sm:p-10 font-sans text-slate-900'>

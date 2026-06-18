@@ -72,6 +72,7 @@ export function App() {
       shippingAddress: customerInfo.address,
       shippingCity: customerInfo.city,
       shippingPostalCode: customerInfo.postalCode,
+      paymentProof,   // URL de Cloudinary del comprobante de pago
       items: allProducts.map(item => ({
         productId: item.id,
         quantity: item.quantity

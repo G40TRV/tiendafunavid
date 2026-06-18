@@ -132,6 +132,7 @@ export const VerifiedHistory = () => {
                                 key={order.id}
                                 purchase={{
                                     ...order,
+                                    paymentProof: order.paymentProof?.imageUrl || null,
                                     products:
                                         order.items ||
                                         order.orderItems ||

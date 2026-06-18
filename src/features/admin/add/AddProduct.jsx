@@ -11,27 +11,53 @@ import {
 import { API_ENDPOINTS } from '../../../shared/api';
 import { auth } from '../../../shared/auth';
 
+// Credenciales de Cloudinary (reemplaza los "xxxx" con tus valores reales)
+const CLOUDINARY_CLOUD_NAME = 'dw3rl2wkc';       // tu cloud name
+const CLOUDINARY_UPLOAD_PRESET = 'funavid-products';    // tu unsigned upload preset
+
+/**
+ * Sube un archivo File a Cloudinary y devuelve la URL segura.
+ * Usa la Upload API pública (no requiere API secret en el frontend).
+ */
+const uploadToCloudinary = async (file) => {
+    const data = new FormData();
+    data.append('file', file);
+    data.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+    const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        { method: 'POST', body: data }
+    );
+
+    if (!res.ok) {
+        throw new Error('No se pudo subir la imagen a Cloudinary.');
+    }
+
+    const json = await res.json();
+    return json.secure_url; // URL pública de la imagen
+};
+
 export const AddProduct = ({
     onSuccess,
     onCancel,
     categories = []
 }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [productImage, setProductImage] = useState(null);
+    const [productImagePreview, setProductImagePreview] = useState(null); // base64 para preview
+    const [productImageFile, setProductImageFile] = useState(null);       // File real para subir
     const [errorMessage, setErrorMessage] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
 
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
-
         if (!file) return;
 
+        // Guardamos el File original para subirlo a Cloudinary
+        setProductImageFile(file);
+
+        // Generamos preview en base64
         const reader = new FileReader();
-
-        reader.onloadend = () => {
-            setProductImage(reader.result);
-        };
-
+        reader.onloadend = () => setProductImagePreview(reader.result);
         reader.readAsDataURL(file);
     };
 
@@ -44,15 +70,23 @@ export const AddProduct = ({
         const form = e.currentTarget;
         const formData = new FormData(form);
 
-        const newProduct = {
-            name: formData.get('name'),
-            description: formData.get('description'),
-            price: Number(formData.get('price')),
-            imageUrl: productImage || '',
-            stock: Number(formData.get('stock'))
-        };
-
         try {
+            // 1. Subir imagen a Cloudinary (si hay una seleccionada)
+            let imageUrl = '';
+            if (productImageFile) {
+                imageUrl = await uploadToCloudinary(productImageFile);
+            }
+
+            // 2. Construir el producto con la URL de Cloudinary
+            const newProduct = {
+                name: formData.get('name'),
+                description: formData.get('description'),
+                price: Number(formData.get('price')),
+                imageUrl,
+                stock: Number(formData.get('stock'))
+            };
+
+            // 3. Guardar el producto en el backend
             const response = await fetch(API_ENDPOINTS.PRODUCTS.LIST, {
                 method: 'POST',
                 headers: {
@@ -64,7 +98,6 @@ export const AddProduct = ({
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
-
                 throw new Error(
                     errorData?.message || 'No se pudo guardar el producto.'
                 );
@@ -73,7 +106,8 @@ export const AddProduct = ({
             const createdProduct = await response.json().catch(() => null);
 
             form.reset();
-            setProductImage(null);
+            setProductImagePreview(null);
+            setProductImageFile(null);
 
             await onSuccess?.(createdProduct);
         } catch (error) {
@@ -237,17 +271,20 @@ export const AddProduct = ({
                         </div>
                     </div>
 
-                    {productImage && (
+                    {productImagePreview && (
                         <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
                             <img
-                                src={productImage}
+                                src={productImagePreview}
                                 alt="Vista previa"
                                 className="w-full h-full object-cover"
                             />
 
                             <button
                                 type="button"
-                                onClick={() => setProductImage(null)}
+                                onClick={() => {
+                                    setProductImagePreview(null);
+                                    setProductImageFile(null);
+                                }}
                                 className="absolute top-2 right-2 p-1.5 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600"
                             >
                                 <RiCloseLine className="w-4 h-4" />

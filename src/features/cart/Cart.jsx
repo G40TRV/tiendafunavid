@@ -45,7 +45,7 @@ export const Cart = ({
                                 <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100/50 group" key={product.id}>
                                     {/* imagen del producto */}
                                     <div className="w-12 h-12 bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden flex-shrink-0">
-                                        <img src={product.img} alt={product.nameProduct} className="w-full h-full object-cover" />
+                                        <img src={product.imageUrl || product.img} alt={product.nameProduct} className="w-full h-full object-cover" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         {/* nombre del producto */}

@@ -2,16 +2,42 @@ import { useState, useRef } from 'preact/hooks'
 import { RiArrowLeftLine, RiShieldCheckFill, RiQrCodeLine, RiImageAddLine, RiCloseLine, RiCheckLine } from '@remixicon/react'
 import qrImage from './qr.png'
 
+// Credenciales de Cloudinary (mismas que en AddProduct)
+const CLOUDINARY_CLOUD_NAME = 'dw3rl2wkc';
+const CLOUDINARY_UPLOAD_PRESET = 'funavid-orders';
+
+/**
+ * Sube el comprobante de pago a Cloudinary y devuelve la URL segura.
+ */
+const uploadToCloudinary = async (file) => {
+    const data = new FormData();
+    data.append('file', file);
+    data.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+    const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        { method: 'POST', body: data }
+    );
+
+    if (!res.ok) {
+        throw new Error('No se pudo subir el comprobante a Cloudinary.');
+    }
+
+    const json = await res.json();
+    return json.secure_url;
+};
+
 export const PaymentGateway = ({ total, onBack, onSuccess }) => {
     const [isProcessing, setIsProcessing] = useState(false);
-    const [paymentProof, setPaymentProof] = useState(null);
-    const [previewUrl, setPreviewUrl] = useState(null);
+    const [paymentProofFile, setPaymentProofFile] = useState(null); // File real para subir
+    const [previewUrl, setPreviewUrl] = useState(null);             // base64 para preview
+    const [errorMessage, setErrorMessage] = useState('');
     const fileInputRef = useRef(null);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setPaymentProof(file);
+            setPaymentProofFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviewUrl(reader.result);
@@ -20,24 +46,32 @@ export const PaymentGateway = ({ total, onBack, onSuccess }) => {
         }
     };
 
-    const handlePayment = (e) => {
+    const handlePayment = async (e) => {
         e.preventDefault();
-        if (!paymentProof) {
+        if (!paymentProofFile) {
             alert("Por favor sube el comprobante de pago.");
             return;
         }
 
         setIsProcessing(true);
-        // Simular tiempo de procesamiento
-        setTimeout(() => {
+        setErrorMessage('');
+
+        try {
+            // Subir el comprobante a Cloudinary y obtener la URL
+            const cloudinaryUrl = await uploadToCloudinary(paymentProofFile);
+
+            // Pasamos la URL de Cloudinary al éxito (en vez del base64)
+            onSuccess(cloudinaryUrl);
+        } catch (error) {
+            console.error('Error subiendo comprobante:', error);
+            setErrorMessage(error.message);
+        } finally {
             setIsProcessing(false);
-            // Pasamos el base64 del comprobante al éxito
-            onSuccess(previewUrl);
-        }, 2000);
+        }
     }
 
     const removeFile = () => {
-        setPaymentProof(null);
+        setPaymentProofFile(null);
         setPreviewUrl(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
@@ -45,7 +79,7 @@ export const PaymentGateway = ({ total, onBack, onSuccess }) => {
     return (
         <div className="min-h-screen bg-slate-50 pt-28 pb-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-xl mx-auto">
-                <button 
+                <button
                     onClick={onBack}
                     className="flex items-center gap-2 text-cyan-600 font-medium hover:text-cyan-700 mb-8 transition-colors"
                 >
@@ -55,7 +89,7 @@ export const PaymentGateway = ({ total, onBack, onSuccess }) => {
 
                 <div className="bg-white rounded-3xl shadow-[0_20px_40px_rgb(0,0,0,0.08)] border border-slate-100 p-8 overflow-hidden relative">
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-cyan-500 to-sky-500"></div>
-                    
+
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h2 className="text-2xl font-black text-slate-900">Transferencia Directa</h2>
@@ -75,9 +109,9 @@ export const PaymentGateway = ({ total, onBack, onSuccess }) => {
                         <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 text-center space-y-4">
                             <p className="text-slate-700 font-medium">Escanea el código QR para pagar desde tu app bancaria</p>
                             <div className="bg-white p-4 rounded-2xl inline-block shadow-sm border border-slate-200">
-                                <img 
-                                    src={qrImage} 
-                                    alt="QR de Pago Funavid" 
+                                <img
+                                    src={qrImage}
+                                    alt="QR de Pago Funavid"
                                     className="w-48 h-48 mx-auto object-contain"
                                 />
                             </div>
@@ -91,9 +125,9 @@ export const PaymentGateway = ({ total, onBack, onSuccess }) => {
                         <form onSubmit={handlePayment} className="space-y-6">
                             <div className="space-y-3">
                                 <label className="block text-sm font-bold text-slate-700">Subir Comprobante de Pago</label>
-                                
+
                                 {!previewUrl ? (
-                                    <div 
+                                    <div
                                         onClick={() => fileInputRef.current.click()}
                                         className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center cursor-pointer hover:border-cyan-500 hover:bg-cyan-50 transition-all group"
                                     >
@@ -102,11 +136,11 @@ export const PaymentGateway = ({ total, onBack, onSuccess }) => {
                                         </div>
                                         <p className="text-sm font-medium text-slate-600">Haz clic para subir imagen o captura</p>
                                         <p className="text-xs text-slate-400 mt-1">JPG, PNG o PDF (Max 5MB)</p>
-                                        <input 
-                                            type="file" 
+                                        <input
+                                            type="file"
                                             ref={fileInputRef}
                                             onChange={handleFileChange}
-                                            className="hidden" 
+                                            className="hidden"
                                             accept="image/*"
                                         />
                                     </div>
@@ -114,7 +148,7 @@ export const PaymentGateway = ({ total, onBack, onSuccess }) => {
                                     <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
                                         <img src={previewUrl} alt="Vista previa del comprobante" className="w-full h-48 object-cover" />
                                         <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                            <button 
+                                            <button
                                                 type="button"
                                                 onClick={removeFile}
                                                 className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
@@ -130,13 +164,19 @@ export const PaymentGateway = ({ total, onBack, onSuccess }) => {
                                 )}
                             </div>
 
-                            <button 
+                            {errorMessage && (
+                                <p className="text-sm text-red-600 font-medium bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                                    {errorMessage}
+                                </p>
+                            )}
+
+                            <button
                                 type="submit"
-                                disabled={isProcessing || !paymentProof}
-                                className={`w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center gap-2 text-lg ${isProcessing || !paymentProof ? 'bg-slate-300 shadow-none cursor-not-allowed' : 'bg-cyan-600 shadow-cyan-600/25 hover:shadow-cyan-600/40 hover:-translate-y-0.5'}`}
+                                disabled={isProcessing || !paymentProofFile}
+                                className={`w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center gap-2 text-lg ${isProcessing || !paymentProofFile ? 'bg-slate-300 shadow-none cursor-not-allowed' : 'bg-cyan-600 shadow-cyan-600/25 hover:shadow-cyan-600/40 hover:-translate-y-0.5'}`}
                             >
                                 {isProcessing ? (
-                                    <span className="animate-pulse">Verificando envío...</span>
+                                    <span className="animate-pulse">Subiendo comprobante...</span>
                                 ) : (
                                     `Enviar Comprobante y Finalizar`
                                 )}
