@@ -8,6 +8,7 @@ import {
 import { API_ENDPOINTS } from '../../../shared/api';
 import { auth } from '../../../shared/auth';
 
+
 /**
  * Componente para subir el código QR al servidor.
  * El servidor procesa la subida a Cloudinary y actualiza la URL en la base de datos.
@@ -106,11 +107,6 @@ export const CodeQR = ({ onSuccess, onCancel }) => {
             }
 
             setCurrentQrUrl(responseData.qrCodeUrl);
-
-            const data = await response.json();
-            if (data && data.qrCodeUrl) {
-                setCurrentQrUrl(data.qrCodeUrl);
-            }
 
             setSuccessMessage('El código QR se ha actualizado correctamente.');
             setQrFile(null);

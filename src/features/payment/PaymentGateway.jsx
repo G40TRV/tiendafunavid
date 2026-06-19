@@ -1,6 +1,7 @@
-import { useState, useRef } from 'preact/hooks'
-import { RiArrowLeftLine, RiShieldCheckFill, RiQrCodeLine, RiImageAddLine, RiCloseLine, RiCheckLine } from '@remixicon/react'
+import { useState, useEffect, useRef } from 'preact/hooks'
+import { RiArrowLeftLine, RiShieldCheckFill, RiImageAddLine, RiCloseLine, RiCheckLine } from '@remixicon/react'
 import qrImage from './qr.png'
+import { API_ENDPOINTS } from '../../shared/api'
 
 // Credenciales de Cloudinary (mismas que en AddProduct)
 const CLOUDINARY_CLOUD_NAME = 'dw3rl2wkc';
@@ -32,7 +33,50 @@ export const PaymentGateway = ({ total, onBack, onSuccess }) => {
     const [paymentProofFile, setPaymentProofFile] = useState(null); // File real para subir
     const [previewUrl, setPreviewUrl] = useState(null);             // base64 para preview
     const [errorMessage, setErrorMessage] = useState('');
+
+    // El QR local se usa como respaldo mientras se consulta el QR configurado.
+    const [qrUrl, setQrUrl] = useState(qrImage);
+    const [isQrLoading, setIsQrLoading] = useState(true);
+
     const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchConfiguredQr = async () => {
+            try {
+                const response = await fetch(
+                    API_ENDPOINTS.STORE_CONFIG.QR,
+                    { cache: 'no-store' }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        `No se pudo obtener el código QR. Código: ${response.status}`
+                    );
+                }
+
+                const data = await response.json();
+
+                if (isMounted && data?.qrCodeUrl) {
+                    setQrUrl(data.qrCodeUrl);
+                }
+            } catch (error) {
+                // Si la consulta falla, se conserva la imagen qr.png como respaldo.
+                console.error('Error cargando el QR configurado:', error);
+            } finally {
+                if (isMounted) {
+                    setIsQrLoading(false);
+                }
+            }
+        };
+
+        fetchConfiguredQr();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -109,11 +153,23 @@ export const PaymentGateway = ({ total, onBack, onSuccess }) => {
                         <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 text-center space-y-4">
                             <p className="text-slate-700 font-medium">Escanea el código QR para pagar desde tu app bancaria</p>
                             <div className="bg-white p-4 rounded-2xl inline-block shadow-sm border border-slate-200">
-                                <img
-                                    src={qrImage}
-                                    alt="QR de Pago Funavid"
-                                    className="w-48 h-48 mx-auto object-contain"
-                                />
+                                {isQrLoading ? (
+                                    <div className="w-48 h-48 mx-auto flex items-center justify-center">
+                                        <div className="w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                ) : (
+                                    <img
+                                        src={qrUrl}
+                                        alt="Código QR de pago de Funavid"
+                                        className="w-48 h-48 mx-auto object-contain"
+                                        onError={() => {
+                                            // Evita dejar un espacio roto si la URL remota no carga.
+                                            if (qrUrl !== qrImage) {
+                                                setQrUrl(qrImage);
+                                            }
+                                        }}
+                                    />
+                                )}
                             </div>
                             <div className="space-y-1">
                                 <p className="text-sm font-bold text-slate-900 uppercase tracking-wider">Funavid Organización</p>
