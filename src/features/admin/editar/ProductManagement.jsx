@@ -1,9 +1,10 @@
-import { RiEditLine, RiDeleteBin6Line, RiSave3Line, RiCloseLine, RiPriceTag3Line, RiStackLine, RiAddLine, RiImageAddLine, RiFileTextLine, RiImageLine, RiFolder3Line } from '@remixicon/react';
+import { RiEditLine, RiDeleteBin6Line, RiSave3Line, RiCloseLine, RiPriceTag3Line, RiStackLine, RiAddLine, RiImageAddLine, RiFileTextLine, RiImageLine, RiFolder3Line, RiQrCodeLine } from '@remixicon/react';
 import { useProductManagement } from './useProductManagement';
 import { useState } from 'react'
 import { AddProduct } from '../add/AddProduct';
 import { AddCategory } from '../add/AddCategory';
 import { useCategory } from './useCategory';
+import { CodeQR } from '../QR/CodeQR';
 
 export const ProductManagement = () => {
     const {
@@ -32,6 +33,7 @@ export const ProductManagement = () => {
     } = useCategory();
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSaveClick = async () => {
@@ -70,6 +72,14 @@ export const ProductManagement = () => {
                     >
                         <RiFolder3Line className="w-6 h-6" />
                         Nueva Categoría
+                    </button>
+
+                    <button
+                        onClick={() => setIsQrModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-2xl shadow-lg shadow-violet-600/20 transition-all hover:-translate-y-0.5 active:scale-95"
+                    >
+                        <RiQrCodeLine className="w-6 h-6" />
+                        Configurar QR
                     </button>
 
                 </div>
@@ -320,6 +330,34 @@ export const ProductManagement = () => {
                                 await fetchProducts();
                                 setIsProductModalOpen(false);
                             }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {isQrModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+                    <div
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        onClick={() => setIsQrModalOpen(false)}
+                    />
+                    <div className="relative max-w-2xl w-full bg-white rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex justify-between items-center p-6 border-b border-slate-100">
+                            <h3 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                                <RiQrCodeLine className="text-violet-600" />
+                                Configurar Código QR
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setIsQrModalOpen(false)}
+                                className="text-slate-400 hover:text-slate-900 p-2"
+                            >
+                                <RiCloseLine className="w-8 h-8" />
+                            </button>
+                        </div>
+                        <CodeQR
+                            onCancel={() => setIsQrModalOpen(false)}
+                            onSuccess={() => setIsQrModalOpen(false)}
                         />
                     </div>
                 </div>

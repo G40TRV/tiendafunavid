@@ -21,6 +21,9 @@ export const API_ENDPOINTS = {
   CATEGORY: {
     LIST: `${API_BASE_URL}/categories`,
     BY_ID: (id) => `${API_BASE_URL}/categories/${id}`,
+  },
+  STORE_CONFIG: {
+    QR: `${API_BASE_URL}/store-config/qr`,
   }
 };
 
