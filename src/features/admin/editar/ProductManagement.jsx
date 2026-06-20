@@ -79,7 +79,7 @@ export const ProductManagement = () => {
                         className="flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-2xl shadow-lg shadow-violet-600/20 transition-all hover:-translate-y-0.5 active:scale-95"
                     >
                         <RiQrCodeLine className="w-6 h-6" />
-                        Configurar QR
+                        Configurar pago
                     </button>
 
                 </div>
@@ -128,6 +128,43 @@ export const ProductManagement = () => {
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
                                         placeholder="Breve descripción del producto..."
                                     ></textarea>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        Categoría
+                                    </label>
+
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <RiFolder3Line className="h-5 w-5 text-slate-400" />
+                                        </div>
+
+                                        <select
+                                            name="categoryId"
+                                            value={editFormData.categoryId ?? ''}
+                                            onChange={handleEditChange}
+                                            required
+                                            className="w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer"
+                                        >
+                                            <option value="">
+                                                Selecciona una categoría
+                                            </option>
+
+                                            {categories.map(category => (
+                                                <option
+                                                    key={category.id}
+                                                    value={category.id}
+                                                >
+                                                    {category.name}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+                                            ▼
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -345,7 +382,7 @@ export const ProductManagement = () => {
                         <div className="flex justify-between items-center p-6 border-b border-slate-100">
                             <h3 className="text-2xl font-black text-slate-900 flex items-center gap-2">
                                 <RiQrCodeLine className="text-violet-600" />
-                                Configurar Código QR
+                                Configurar QR y cuenta bancaria
                             </h3>
                             <button
                                 type="button"

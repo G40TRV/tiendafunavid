@@ -19,18 +19,93 @@ import { API_ENDPOINTS } from './shared/api'
 import { auth } from './shared/auth'
 
 
+const CHECKOUT_SESSION_KEY = 'funavid_checkout_session';
+const DONATION_SESSION_KEY = 'funavid_donation_amount';
+
+const EMPTY_CHECKOUT_SESSION = {
+  allProducts: [],
+  total: 0,
+  countProducts: 0,
+  customerInfo: null,
+};
+
+const readCheckoutSession = () => {
+  if (typeof window === 'undefined') {
+    return EMPTY_CHECKOUT_SESSION;
+  }
+
+  try {
+    const savedSession = sessionStorage.getItem(CHECKOUT_SESSION_KEY);
+
+    if (!savedSession) {
+      return EMPTY_CHECKOUT_SESSION;
+    }
+
+    const parsedSession = JSON.parse(savedSession);
+
+    return {
+      allProducts: Array.isArray(parsedSession?.allProducts)
+        ? parsedSession.allProducts
+        : [],
+      total: Number(parsedSession?.total) || 0,
+      countProducts: Number(parsedSession?.countProducts) || 0,
+      customerInfo:
+        parsedSession?.customerInfo &&
+        typeof parsedSession.customerInfo === 'object'
+          ? parsedSession.customerInfo
+          : null,
+    };
+  } catch (error) {
+    console.error('No se pudo recuperar la compra de la sesión:', error);
+    sessionStorage.removeItem(CHECKOUT_SESSION_KEY);
+    return EMPTY_CHECKOUT_SESSION;
+  }
+};
+
+const saveCheckoutSession = (sessionData) => {
+  if (typeof window === 'undefined') return;
+
+  sessionStorage.setItem(
+    CHECKOUT_SESSION_KEY,
+    JSON.stringify(sessionData)
+  );
+};
+
+const readDonationAmount = () => {
+  if (typeof window === 'undefined') return 0;
+
+  const savedAmount = Number(
+    sessionStorage.getItem(DONATION_SESSION_KEY)
+  );
+
+  return Number.isFinite(savedAmount) && savedAmount > 0
+    ? savedAmount
+    : 0;
+};
+
+
 //guardar el estado global
 
 export function App() {
 
-  // allProducts: Guarda la lista de productos que estÃ¡n en el carrito.
-  const [allProducts, setAllProducts] = useState([]);
+  const [initialCheckoutSession] = useState(
+    readCheckoutSession
+  );
 
-  // total: Guarda cuÃ¡nto dinero suma del carrito.
-  const [total, setTotal] = useState(0);
+  // allProducts: Guarda la lista de productos del carrito.
+  const [allProducts, setAllProducts] = useState(
+    initialCheckoutSession.allProducts
+  );
 
-  // countProducts: Guarda cuÃ¡ntos Ã­tems hay en total en el carrito.
-  const [countProducts, setCountProducts] = useState(0);
+  // total: Guarda cuánto dinero suma el carrito.
+  const [total, setTotal] = useState(
+    initialCheckoutSession.total
+  );
+
+  // countProducts: Guarda cuántos ítems hay en total.
+  const [countProducts, setCountProducts] = useState(
+    initialCheckoutSession.countProducts
+  );
 
   // isAuth: verifica si el usuario ingresÃ³ exitosamente. Se inicializa desde localStorage para persistencia.
   const [isAuth, setIsAuth] = useState(() => {
@@ -43,11 +118,15 @@ export function App() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  // donationAmount: Guarda el monto que el usuario quiere donar
-  const [donationAmount, setDonationAmount] = useState(0);
+  // donationAmount: Guarda temporalmente el monto de donación.
+  const [donationAmount, setDonationAmount] = useState(
+    readDonationAmount
+  );
 
-  // customerInfo: Guarda los datos de envio del cliente
-  const [customerInfo, setCustomerInfo] = useState(null);
+  // customerInfo: Guarda los datos de envío del cliente.
+  const [customerInfo, setCustomerInfo] = useState(
+    initialCheckoutSession.customerInfo
+  );
 
   const navigate = useNavigate();
 
@@ -63,8 +142,87 @@ export function App() {
     }
   }, [location.pathname]);
 
-  // recordPurchase: Crea un pedido en el servidor con los productos del carrito
+
+  // Conserva el proceso de compra durante recargas de la pestaña.
+  useEffect(() => {
+    const hasCheckoutData =
+      allProducts.length > 0 ||
+      total > 0 ||
+      countProducts > 0 ||
+      Boolean(customerInfo);
+
+    if (!hasCheckoutData) {
+      sessionStorage.removeItem(CHECKOUT_SESSION_KEY);
+      return;
+    }
+
+    saveCheckoutSession({
+      allProducts,
+      total,
+      countProducts,
+      customerInfo,
+    });
+  }, [
+    allProducts,
+    total,
+    countProducts,
+    customerInfo,
+  ]);
+
+  useEffect(() => {
+    if (donationAmount > 0) {
+      sessionStorage.setItem(
+        DONATION_SESSION_KEY,
+        String(donationAmount)
+      );
+    } else {
+      sessionStorage.removeItem(DONATION_SESSION_KEY);
+    }
+  }, [donationAmount]);
+
+  const proceedToPayment = (data) => {
+    const nextSession = {
+      allProducts,
+      total,
+      countProducts,
+      customerInfo: data,
+    };
+
+    // Se guarda inmediatamente antes de navegar para evitar
+    // que una recarga pierda los datos de la compra.
+    saveCheckoutSession(nextSession);
+    setCustomerInfo(data);
+    navigate('/payment');
+  };
+
+  const clearCheckoutSession = () => {
+    sessionStorage.removeItem(CHECKOUT_SESSION_KEY);
+    setAllProducts([]);
+    setTotal(0);
+    setCountProducts(0);
+    setCustomerInfo(null);
+  };
+
+  // Crea un pedido y devuelve la orden creada.
   const recordPurchase = async (paymentProof) => {
+    if (!customerInfo) {
+      throw new Error(
+        'No se encontraron los datos del cliente. Regresa al checkout e inténtalo nuevamente.'
+      );
+    }
+
+    if (!Array.isArray(allProducts) || allProducts.length === 0) {
+      throw new Error(
+        'El carrito está vacío. Regresa a la tienda y agrega productos.'
+      );
+    }
+
+    if (!paymentProof) {
+      throw new Error(
+        'No se recibió el comprobante de pago.'
+      );
+    }
+
     const orderData = {
       customerName: customerInfo.name,
       customerEmail: customerInfo.email,
@@ -72,27 +230,37 @@ export function App() {
       shippingAddress: customerInfo.address,
       shippingCity: customerInfo.city,
       shippingPostalCode: customerInfo.postalCode,
-      paymentProof,   // URL de Cloudinary del comprobante de pago
-      items: allProducts.map(item => ({
+      paymentProof,
+      items: allProducts.map((item) => ({
         productId: item.id,
-        quantity: item.quantity
-      }))
+        quantity: item.quantity,
+      })),
     };
 
-    try {
-      const response = await fetch(API_ENDPOINTS.ORDERS.LIST, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(orderData)
-      });
+    const response = await fetch(API_ENDPOINTS.ORDERS.LIST, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderData),
+    });
 
-      if (!response.ok) throw new Error('Error creando pedido');
-    } catch (error) {
-      console.error("Error registrando pedido:", error);
-      alert("Hubo un problema al procesar tu pedido.");
+    const responseData = await response
+      .json()
+      .catch(() => null);
+
+    if (!response.ok) {
+      const message = Array.isArray(responseData?.message)
+        ? responseData.message.join(', ')
+        : responseData?.message;
+
+      throw new Error(
+        message ||
+        `No se pudo crear el pedido. Código: ${response.status}`
+      );
     }
+
+    return responseData;
   };
 
   return (
@@ -159,32 +327,29 @@ export function App() {
                 <Checkout
                   allProducts={allProducts}
                   total={total}
-                  onProceedToPayment={(data) => {
-                    setCustomerInfo(data);
-                    navigate("/payment");
-                  }}
+                  onProceedToPayment={proceedToPayment}
                   onBack={() => navigate("/")}
                 />
               } />
               <Route path="/payment" element={
-                <PaymentGateway
-                  total={total}
-                  onBack={() => navigate("/checkout")}
-                  onSuccess={async (paymentProof) => {
-                    await recordPurchase(paymentProof);
-
-                    setAllProducts([]);
-                    setTotal(0);
-                    setCountProducts(0);
-                    setCustomerInfo(null);
-
-                    navigate("/success");
-                  }}
-                />
+                allProducts.length > 0 && customerInfo ? (
+                  <PaymentGateway
+                    total={total}
+                    onBack={() => navigate("/checkout")}
+                    onSuccess={async (paymentProof) => {
+                      await recordPurchase(paymentProof);
+                      clearCheckoutSession();
+                      navigate("/success", { replace: true });
+                    }}
+                  />
+                ) : (
+                  <Navigate to="/checkout" replace />
+                )
               } />
               <Route path="/success" element={
                 <SuccessPage
                   onContinue={() => {
+                    clearCheckoutSession();
                     navigate("/");
                   }}
                 />
@@ -200,21 +365,34 @@ export function App() {
               <Route path="/donar" element={
                 <DonationView
                   onProceed={(amount) => {
+                    sessionStorage.setItem(
+                      DONATION_SESSION_KEY,
+                      String(amount)
+                    );
                     setDonationAmount(amount);
                     navigate("/payment-donation");
                   }}
                 />
               } />
               <Route path="/payment-donation" element={
-                <PaymentGateway
-                  total={donationAmount}
-                  onBack={() => navigate("/donar")}
-                  onSuccess={async (paymentProof) => {
-                    // También podríamos registrar las donaciones si quisiéramos
-                    // Por ahora solo vamos al éxito
-                    navigate("/success-donation");
-                  }}
-                />
+                donationAmount > 0 ? (
+                  <PaymentGateway
+                    total={donationAmount}
+                    onBack={() => navigate("/donar")}
+                    onSuccess={async () => {
+                      setDonationAmount(0);
+                      sessionStorage.removeItem(
+                        DONATION_SESSION_KEY
+                      );
+                      navigate(
+                        "/success-donation",
+                        { replace: true }
+                      );
+                    }}
+                  />
+                ) : (
+                  <Navigate to="/donar" replace />
+                )
               } />
               <Route path="/success-donation" element={
                 <SuccessPage

@@ -78,12 +78,19 @@ export const AddProduct = ({
             }
 
             // 2. Construir el producto con la URL de Cloudinary
+            const categoryId = Number(formData.get('categoryId'));
+
+            if (!Number.isInteger(categoryId) || categoryId <= 0) {
+                throw new Error('Selecciona una categoría válida.');
+            }
+
             const newProduct = {
                 name: formData.get('name'),
                 description: formData.get('description'),
                 price: Number(formData.get('price')),
                 imageUrl,
-                stock: Number(formData.get('stock'))
+                stock: Number(formData.get('stock')),
+                categoryId
             };
 
             // 3. Guardar el producto en el backend
@@ -106,6 +113,7 @@ export const AddProduct = ({
             const createdProduct = await response.json().catch(() => null);
 
             form.reset();
+            setSelectedCategory('');
             setProductImagePreview(null);
             setProductImageFile(null);
 

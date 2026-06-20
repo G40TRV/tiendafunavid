@@ -6,6 +6,35 @@ import { AdminPurchaseCard } from '../../../shared/AdminPurchaseCard';
 import { API_ENDPOINTS } from '../../../shared/api';
 import { auth } from '../../../shared/auth';
 
+
+const normalizeSearchValue = value =>
+    String(value ?? '')
+        .trim()
+        .toLowerCase();
+
+const orderMatchesCategory = (order, normalizedTerm) => {
+    const orderItems =
+        order.orderItems ||
+        order.items ||
+        [];
+
+    return orderItems.some(item => {
+        const possibleCategoryValues = [
+            item.product?.category?.name,
+            item.product?.category?.id,
+            item.product?.categoryId,
+            item.category?.name,
+            item.category?.id,
+            item.categoryName,
+            item.categoryId
+        ];
+
+        return possibleCategoryValues.some(value =>
+            normalizeSearchValue(value).includes(normalizedTerm)
+        );
+    });
+};
+
 export const VerifiedHistory = () => {
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -60,20 +89,10 @@ export const VerifiedHistory = () => {
             }
 
             if (searchMode === 'category') {
-                const orderItems = order.items || order.orderItems || [];
-
-                return orderItems.some(item => {
-                    const categoryName =
-                        item.category?.name ||
-                        item.categoryName ||
-                        item.product?.category?.name ||
-                        item.product?.categoryName ||
-                        '';
-
-                    return categoryName
-                        .toLowerCase()
-                        .includes(normalizedTerm);
-                });
+                return orderMatchesCategory(
+                    order,
+                    normalizedTerm
+                );
             }
 
             return true;
@@ -143,7 +162,7 @@ export const VerifiedHistory = () => {
                                         phone: order.customer.phone,
                                         address: order.customer.address,
                                         city: order.customer.city,
-                                        postalCode: order.customer.postalCode || ["No"],
+                                        postalCode: order.customer.postalCode || 'No registrado',
                                     }
                                 }}
                                 onDelete={() => handleDelete(order.id)}
