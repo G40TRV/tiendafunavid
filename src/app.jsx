@@ -21,6 +21,7 @@ import { auth } from './shared/auth'
 
 const CHECKOUT_SESSION_KEY = 'funavid_checkout_session';
 const DONATION_SESSION_KEY = 'funavid_donation_amount';
+const ORDER_CONFIRMATION_KEY = 'funavid_last_order_id';
 
 const EMPTY_CHECKOUT_SESSION = {
   allProducts: [],
@@ -70,6 +71,19 @@ const saveCheckoutSession = (sessionData) => {
     JSON.stringify(sessionData)
   );
 };
+
+const readLastOrderId = () => {
+  if (typeof window === 'undefined') return null;
+
+  const savedOrderId = Number(
+    sessionStorage.getItem(ORDER_CONFIRMATION_KEY)
+  );
+
+  return Number.isInteger(savedOrderId) && savedOrderId > 0
+    ? savedOrderId
+    : null;
+};
+
 
 const readDonationAmount = () => {
   if (typeof window === 'undefined') return 0;
@@ -121,6 +135,11 @@ export function App() {
   // donationAmount: Guarda temporalmente el monto de donación.
   const [donationAmount, setDonationAmount] = useState(
     readDonationAmount
+  );
+
+  // lastOrderId: Guarda el ID real de la última compra creada.
+  const [lastOrderId, setLastOrderId] = useState(
+    readLastOrderId
   );
 
   // customerInfo: Guarda los datos de envío del cliente.
@@ -337,9 +356,33 @@ export function App() {
                     total={total}
                     onBack={() => navigate("/checkout")}
                     onSuccess={async (paymentProof) => {
-                      await recordPurchase(paymentProof);
+                      const createdOrder =
+                        await recordPurchase(paymentProof);
+
+                      const createdOrderId =
+                        Number(createdOrder?.id);
+
+                      if (
+                        !Number.isInteger(createdOrderId) ||
+                        createdOrderId <= 0
+                      ) {
+                        throw new Error(
+                          'El pedido fue procesado, pero el servidor no devolvió un ID de confirmación válido.'
+                        );
+                      }
+
+                      sessionStorage.setItem(
+                        ORDER_CONFIRMATION_KEY,
+                        String(createdOrderId)
+                      );
+
+                      setLastOrderId(createdOrderId);
                       clearCheckoutSession();
-                      navigate("/success", { replace: true });
+
+                      navigate(
+                        "/success",
+                        { replace: true }
+                      );
                     }}
                   />
                 ) : (
@@ -347,12 +390,22 @@ export function App() {
                 )
               } />
               <Route path="/success" element={
-                <SuccessPage
-                  onContinue={() => {
-                    clearCheckoutSession();
-                    navigate("/");
-                  }}
-                />
+                lastOrderId ? (
+                  <SuccessPage
+                    orderId={lastOrderId}
+                    onContinue={() => {
+                      sessionStorage.removeItem(
+                        ORDER_CONFIRMATION_KEY
+                      );
+
+                      setLastOrderId(null);
+                      clearCheckoutSession();
+                      navigate("/");
+                    }}
+                  />
+                ) : (
+                  <Navigate to="/" replace />
+                )
               } />
               <Route path="/about" element={
                 <ContactPage

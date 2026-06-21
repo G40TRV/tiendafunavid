@@ -39,6 +39,34 @@ const orderMatchesCategory = (order, normalizedTerm) => {
     });
 };
 
+
+const getOrderCustomerData = order => ({
+    name:
+        order.customerName ||
+        order.customer?.name ||
+        'No registrado',
+    email:
+        order.customerEmail ||
+        order.customer?.email ||
+        'No registrado',
+    phone:
+        order.customerPhone ||
+        order.customer?.phone ||
+        'No registrado',
+    address:
+        order.shippingAddress ||
+        order.customer?.address ||
+        'No registrado',
+    city:
+        order.shippingCity ||
+        order.customer?.city ||
+        'No registrado',
+    postalCode:
+        order.shippingPostalCode ||
+        order.customer?.postalCode ||
+        'No registrado'
+});
+
 export const PaymentReview = () => {
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -245,14 +273,8 @@ export const PaymentReview = () => {
                                         order.items ||
                                         order.orderItems ||
                                         [],
-                                    customer: {
-                                        name: order.customer.name,
-                                        email: order.customer.email,
-                                        phone: order.customer.phone,
-                                        address: order.customer.address,
-                                        city: order.customer.city,
-                                        postalCode: order.customer.postalCode || 'No registrado',
-                                    }
+                                    customer:
+                                        getOrderCustomerData(order)
                                 }}
                                 onDelete={() => handleDelete(order.id)}
                                 onImageClick={setSelectedImage}
