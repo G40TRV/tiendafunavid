@@ -9,7 +9,6 @@ import { PaymentGateway } from './features/payment/PaymentGateway'
 import { SuccessPage } from './features/payment/SuccessPage'
 import { ContactPage } from './features/contact/contact'
 import { DonationView } from './features/donation/DonationView'
-import { VolunteerView } from './features/voluntario/VolunteerView'
 import { AdminNavbar } from './features/admin/dashboard/AdminNavbar'
 import { AddProduct } from './features/admin/add/AddProduct'
 import { ProductManagement } from './features/admin/editar/ProductManagement'
@@ -52,7 +51,7 @@ const readCheckoutSession = () => {
       countProducts: Number(parsedSession?.countProducts) || 0,
       customerInfo:
         parsedSession?.customerInfo &&
-        typeof parsedSession.customerInfo === 'object'
+          typeof parsedSession.customerInfo === 'object'
           ? parsedSession.customerInfo
           : null,
     };
@@ -410,21 +409,6 @@ export function App() {
               <Route path="/about" element={
                 <ContactPage
                   onContinue={() => navigate("/")}
-                />
-              } />
-              <Route path="/voluntario" element={
-                <VolunteerView />
-              } />
-              <Route path="/donar" element={
-                <DonationView
-                  onProceed={(amount) => {
-                    sessionStorage.setItem(
-                      DONATION_SESSION_KEY,
-                      String(amount)
-                    );
-                    setDonationAmount(amount);
-                    navigate("/payment-donation");
-                  }}
                 />
               } />
               <Route path="/payment-donation" element={

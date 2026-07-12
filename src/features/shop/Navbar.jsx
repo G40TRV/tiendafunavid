@@ -54,14 +54,6 @@ export const Navbar = ({ children }) => {
                         >
                             Sobre Nosotros
                         </Link>
-
-                        <Link
-                            to="/voluntario"
-                            className="font-semibold text-slate-600 hover:text-cyan-600 transition-colors"
-                        >
-                            Voluntariado
-                        </Link>
-
                         <a
                             href="https://www.funavid.org/"
                             target="_blank"
