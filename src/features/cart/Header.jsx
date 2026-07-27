@@ -3,7 +3,7 @@ import { Navbar } from './../shop/Navbar'
 import { CartIcon } from '../../shared/CartIcon'
 import { Cart } from './Cart'
 
-//Header: Componente integrador que reÃºne el Navbar compartido y las funcionalidades del carrito.
+//Header: Componente integrador que reune el Navbar compartido y las funcionalidades del carrito.
 export const Header = ({
     allProducts,
     setAllProducts,

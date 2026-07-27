@@ -209,10 +209,6 @@ tiendafunavid/
 - /admin/payments : pagos
 - /admin/history : historial de pagos
 
-## Estado del proyecto
-
-El frontend se encuentra en estado de prototipo funcional. La aplicación cuenta con las vistas principales, navegación, diseño de interfaz y flujo básico de compra. Algunas funcionalidades dependen de la integración con el backend y pueden requerir ajustes adicionales para su funcionamiento completo en producción.
-
 ## Conexión con el backend
 
 El frontend está diseñado para conectarse con una API backend encargada de gestionar productos, órdenes de compra, clientes y comprobantes de pago. Algunas vistas, como el listado de productos, el checkout y el panel administrativo, dependen de los datos enviados por el backend.
