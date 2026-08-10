@@ -35,6 +35,34 @@ const orderMatchesCategory = (order, normalizedTerm) => {
     });
 };
 
+
+const getOrderCustomerData = order => ({
+    name:
+        order.customerName ||
+        order.customer?.name ||
+        'No registrado',
+    email:
+        order.customerEmail ||
+        order.customer?.email ||
+        'No registrado',
+    phone:
+        order.customerPhone ||
+        order.customer?.phone ||
+        'No registrado',
+    address:
+        order.shippingAddress ||
+        order.customer?.address ||
+        'No registrado',
+    city:
+        order.shippingCity ||
+        order.customer?.city ||
+        'No registrado',
+    postalCode:
+        order.shippingPostalCode ||
+        order.customer?.postalCode ||
+        'No registrado'
+});
+
 export const VerifiedHistory = () => {
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -118,17 +146,31 @@ export const VerifiedHistory = () => {
         });
 
     return (
-        <div className="min-h-screen bg-slate-50 pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-slate-50 pt-28 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
-                <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <div>
-                        <h2 className="text-3xl font-black text-slate-900 flex items-center gap-3">
-                            <RiHistoryLine className="text-emerald-600 w-8 h-8" />
-                            Historial de Pedidos <span className="text-emerald-600">Verificados</span>
-                        </h2>
-                        <p className="text-slate-500 mt-2">Registro de pedidos que ya han sido pagados y procesados.</p>
-                    </div>
+                <div className="mb-8 sm:mb-10">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                        <RiHistoryLine className="flex-shrink-0 mt-1 text-emerald-600 w-7 h-7 sm:w-8 sm:h-8" />
 
+                        <div className="min-w-0">
+                            <h2 className="text-3xl sm:text-4xl font-black leading-tight tracking-tight text-slate-900">
+                                <span className="block sm:inline">
+                                    Historial de Pedidos
+                                </span>
+
+                                <span className="block sm:inline sm:ml-3 text-emerald-600">
+                                    Verificados
+                                </span>
+                            </h2>
+
+                            <p className="text-slate-500 mt-3 text-base sm:text-lg leading-relaxed max-w-2xl">
+                                Registro de pedidos que ya han sido pagados y procesados.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mb-8 sm:mb-10">
                     <HistoryFilters
                         searchMode={searchMode}
                         setSearchMode={setSearchMode}
@@ -141,7 +183,7 @@ export const VerifiedHistory = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredOrders.length === 0 ? (
-                        <div className="col-span-full bg-white border border-slate-200 rounded-3xl p-20 text-center shadow-sm">
+                        <div className="col-span-full bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 lg:p-20 text-center shadow-sm">
                             <RiHistoryLine className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                             <p className="text-slate-400 text-xl font-medium">No se encontraron pedidos verificados.</p>
                         </div>
@@ -156,14 +198,8 @@ export const VerifiedHistory = () => {
                                         order.items ||
                                         order.orderItems ||
                                         [],
-                                    customer: {
-                                        name: order.customer.name,
-                                        email: order.customer.email,
-                                        phone: order.customer.phone,
-                                        address: order.customer.address,
-                                        city: order.customer.city,
-                                        postalCode: order.customer.postalCode || 'No registrado',
-                                    }
+                                    customer:
+                                        getOrderCustomerData(order)
                                 }}
                                 onDelete={() => handleDelete(order.id)}
                                 onImageClick={setSelectedImage}
